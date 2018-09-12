@@ -1,0 +1,23 @@
+{
+  "name": "MIBParser",
+  "version": "1.0.0",
+  "description": "JavaScript (Node.JS) MIB Parser",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SlimIO/MIBParser.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SlimIO/MIBParser/issues"
+  },
+  "homepage": "https://github.com/SlimIO/MIBParser#readme",
+  "dependencies": {
+    "asn1": "^0.2.4"
+  }
+}
