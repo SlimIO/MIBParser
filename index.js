@@ -5,10 +5,32 @@ const { join } = require("path");
 // CONSTANTS
 const BREAKLINE = ";".charCodeAt(0);
 const IMPORT_KEY = "IMPORTS";
+const IMPORT_KEY_LENGTH = IMPORT_KEY.length;
 const MIBS_DIR = join(__dirname, "MIBS");
 
 // REGEX
 const ReMibFrom = /FROM\s([a-zA-Z0-9-]+)/gm;
+const ReMibComment = /--\s+.*/gm;
+
+/**
+ * @function cleanUpANS1Comments
+ * @desc Delete ASN1 comments
+ * @param {!String} str 
+ */
+function cleanUpANS1Comments(str) {
+    let comment;
+    while((comment = ReMibComment.exec(str)) !== null) {
+        str = str.replace(comment[0], "");
+    }
+    while((comment = ReMibComment.exec(str)) !== null) {
+        str = str.replace(comment[0], "");
+    }
+    while((comment = ReMibComment.exec(str)) !== null) {
+        str = str.replace(comment[0], "");
+    }
+
+    return str;
+}
 
 /**
  * @async
@@ -19,7 +41,7 @@ const ReMibFrom = /FROM\s([a-zA-Z0-9-]+)/gm;
 async function MIBDefinitions(mibPath) {
     const buffers = [];
 
-    // Read and get header
+    // Read and get MIB header
     const readStream = createReadStream(mibPath, { highWaterMark: 1024 });
     for await (const buf of readStream) {
         const closeIndex = buf.indexOf(BREAKLINE);
@@ -32,23 +54,24 @@ async function MIBDefinitions(mibPath) {
     readStream.close();
 
     // Transform header to string!
-    const pStr = buffers.map(buf => buf.toString()).join("");
+    const pStr = cleanUpANS1Comments(buffers.map((buf) => buf.toString()).join(""));
 
-    // pStrrieve mib name!
+    // Retrieve mib name!
     const mibNameRet = /([a-zA-Z0-9-]+)\s+DEFINITIONS\s+::=\sBEGIN/g.exec(pStr);
-    const mibName = mibNameRet !== null ? mibNameRet[1] : "unknown";
+    const ret = {
+        file: mibPath,
+        name: mibNameRet !== null ? mibNameRet[1] : "unknown",
+        dependencies: []
+    };
 
-    const ret = { file: mibPath, name: mibName, dependencies: [] };
-    let startIndex = pStr.indexOf(IMPORT_KEY) + IMPORT_KEY.length;
-    let from;
-
+    let from, startIndex = pStr.indexOf(IMPORT_KEY) + IMPORT_KEY_LENGTH;
     while((from = ReMibFrom.exec(pStr)) !== null) {
         const [completeMatch, fromMibName] = from;
         const endIndex = pStr.indexOf(completeMatch) - 1;
 
         ret.dependencies.push({
             name: fromMibName,
-            members: pStr.slice(startIndex, endIndex).split(",").map(mem => mem.trim())
+            members: pStr.slice(startIndex, endIndex).split(",").map((mem) => mem.trim())
         });
         startIndex = endIndex + (completeMatch.length + 1);
     }
@@ -66,6 +89,6 @@ async function main() {
     console.timeEnd("parseMib");
 
     const retStr = JSON.stringify(def, null, 4);
-    await writeFile("./parsed.json", retStr);
+    await writeFile("./parsed.json", retStr); 
 }
 main().catch(console.error);
