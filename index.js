@@ -84,47 +84,85 @@ async function MIBDefinitions(mibPath) {
 }
 
 async function parseASN1(mibPath) {
+    // Declare variables
     const buffersArr = [];
+    let tBuffers = [];
+    let startIndex = 0;
+    let seekCloseBlock = false;
 
     // Read and get MIB header
     const readStream = createReadStream(mibPath, { highWaterMark: 1024 });
-    for await (const buf of readStream) {
-        buffersArr.push(buf);
+    for await (let buf of readStream) {
+        {
+            const breakIndex = buf.indexOf(BREAKLINE);
+            if (breakIndex !== -1) {
+                buf = buf.slice(breakIndex + 1, buf.length);
+            }
+        }
+
+        let j = 0;
+
+        let oneMatch = false;
+        for (let i = 0; i < buf.length; i++) {
+            if (buf[i] === EQUAL_SIGN) {
+                seekCloseBlock = true;
+            }
+            else if (buf[i] === CLOSE_BRACKET && seekCloseBlock) {
+                const fBuf = tBuffers.length > 0 ? Buffer.concat([...tBuffers, buf]) : buf;
+                const ret = fBuf.slice(startIndex, (fBuf.length - (buf.length - i)) + 1);
+                tBuffers = [];
+                buffersArr.push(ret);
+                console.log(ret.toString());
+                console.log("-----------------\n\n");
+                if (j === 3) {
+                    process.exit(0);
+                }
+                j++;
+
+                startIndex = i+2;
+                seekCloseBlock = false;
+                oneMatch = true;
+            }
+        }
+
+        if (startIndex <= buf.length) {
+            tBuffers.push(oneMatch ? buf.slice(startIndex, buf.length) : buf);
+        }
     }
     readStream.close();
 
-    let buffer = Buffer.concat(buffersArr);
-    buffer = buffer.slice(buffer.indexOf(BREAKLINE) + 1, buffer.length);
+    // let buffer = Buffer.concat(buffersArr);
+    // buffer = buffer.slice(buffer.indexOf(BREAKLINE) + 1, buffer.length);
 
-    // Declare variables
-    let startIndex = 0;
-    let seekCloseBlock = false;
-    const bufBlocks = [];
+    // // Declare variables
+    // let startIndex = 0;
+    // let seekCloseBlock = false;
+    // const bufBlocks = [];
 
-    // Match all blocks!
-    for (let i = 0; i < buffer.length; ++i) {
-        const charCode = buffer[i];
-        if (charCode === EQUAL_SIGN) {
-            if (i < 2) continue;
-            if (buffer[i - 1] === DOUBLE_DOT_SIGN && buffer[i - 2] === DOUBLE_DOT_SIGN) {
-                seekCloseBlock = true;
-            }
-        }
-        else if(charCode === CLOSE_BRACKET && seekCloseBlock) {
-            bufBlocks.push(buffer.slice(startIndex, i + 1));
-            startIndex = i + 2;
-            seekCloseBlock = false;
-        }
-    }
+    // // Match all blocks!
+    // for (let i = 0; i < buffer.length; ++i) {
+    //     const charCode = buffer[i];
+    //     if (charCode === EQUAL_SIGN) {
+    //         if (i < 2) continue;
+    //         if (buffer[i - 1] === DOUBLE_DOT_SIGN && buffer[i - 2] === DOUBLE_DOT_SIGN) {
+    //             seekCloseBlock = true;
+    //         }
+    //     }
+    //     else if(charCode === CLOSE_BRACKET && seekCloseBlock) {
+    //         bufBlocks.push(buffer.slice(startIndex, i + 1));
+    //         startIndex = i + 2;
+    //         seekCloseBlock = false;
+    //     }
+    // }
 
-    console.log(bufBlocks.map((buf) => buf.toString()));
+    // console.log(JSON.stringify(buffersArr.map((buf) => buf.toString()), null, 4));
 }
 
 async function main() {
     let importDef;
 
     console.time("exec");
-    await parseASN1(join(MIBS_DIR, "ALARM-MIB.mib"));
+    await parseASN1(join(MIBS_DIR, "TUNNEL-MIB.txt"));
     console.timeEnd("exec");
 
     // // Read headers!
