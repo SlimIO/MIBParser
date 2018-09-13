@@ -5,12 +5,16 @@ const { join } = require("path");
 // CONSTANTS
 const BREAKLINE = ";".charCodeAt(0);
 const IMPORT_KEY = "IMPORTS";
+const EQUAL_SIGN = "=".charCodeAt(0);
+const DOUBLE_DOT_SIGN = ":".charCodeAt(0);
+const CLOSE_BRACKET = "}".charCodeAt(0);
 const IMPORT_KEY_LENGTH = IMPORT_KEY.length;
 const MIBS_DIR = join(__dirname, "MIBS");
 
 // REGEX
 const ReMibFrom = /FROM\s([a-zA-Z0-9-]+)/gm;
 const ReMibComment = /--\s+.*/gm;
+const ReASN1Group = /::=\s+{\s[\w-]+\s[0-9]\s}/gm;
 
 /**
  * @function cleanUpANS1Comments
@@ -79,16 +83,72 @@ async function MIBDefinitions(mibPath) {
     return ret;
 }
 
+async function parseASN1(mibPath) {
+    const buffersArr = [];
+
+    // Read and get MIB header
+    const readStream = createReadStream(mibPath, { highWaterMark: 1024 });
+    for await (const buf of readStream) {
+        buffersArr.push(buf);
+    }
+    readStream.close();
+
+    let buffer = Buffer.concat(buffersArr);
+    buffer = buffer.slice(buffer.indexOf(BREAKLINE) + 1, buffer.length);
+
+    // Declare variables
+    let startIndex = 0;
+    let seekCloseBlock = false;
+    const bufBlocks = [];
+
+    // Match all blocks!
+    for (let i = 0; i < buffer.length; ++i) {
+        const charCode = buffer[i];
+        if (charCode === EQUAL_SIGN) {
+            if (i < 2) continue;
+            if (buffer[i - 1] === DOUBLE_DOT_SIGN && buffer[i - 2] === DOUBLE_DOT_SIGN) {
+                seekCloseBlock = true;
+            }
+        }
+        else if(charCode === CLOSE_BRACKET && seekCloseBlock) {
+            bufBlocks.push(buffer.slice(startIndex, i + 1));
+            startIndex = i + 2;
+            seekCloseBlock = false;
+        }
+    }
+
+    console.log(bufBlocks.map((buf) => buf.toString()));
+}
+
 async function main() {
+    let importDef;
 
-    console.time("parseMib");
-    const mibFiles = (await readdir(MIBS_DIR)).map(file => join(MIBS_DIR, file));
-    const def = await Promise.all(
-        mibFiles.map(file => MIBDefinitions(file))
-    );
-    console.timeEnd("parseMib");
+    console.time("exec");
+    await parseASN1(join(MIBS_DIR, "ALARM-MIB.mib"));
+    console.timeEnd("exec");
 
-    const retStr = JSON.stringify(def, null, 4);
-    await writeFile("./parsed.json", retStr); 
+    // // Read headers!
+    // {
+    //     console.time("parseMib");
+    //     const mibFiles = (await readdir(MIBS_DIR)).map(file => join(MIBS_DIR, file));
+    //     importDef = await Promise.all(
+    //         mibFiles.map(file => MIBDefinitions(file))
+    //     );
+    //     console.timeEnd("parseMib");
+    // }
+
+    // // Get all mibs name in a Set
+    // const mibs = new Set(importDef.map((mib) => mib.name));
+
+    // // Check for missing mibs!
+    // for (const mib of importDef) {
+    //     for (const { name } of mib.dependencies) {
+    //         if (mibs.has(name)) continue;
+    //         console.log(`Missing MIB :: ${name} in dependencies of MIB :: ${mib.name}`);
+    //     }
+    // }
+
+    // const retStr = JSON.stringify(importDef, null, 4);
+    // await writeFile("./parsed.json", retStr); 
 }
 main().catch(console.error);
