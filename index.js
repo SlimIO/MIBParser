@@ -85,51 +85,51 @@ async function MIBDefinitions(mibPath) {
 
 async function parseASN1(mibPath) {
     // Declare variables
-    const buffersArr = [];
-    let tBuffers = [];
-    let startIndex = 0;
-    let seekCloseBlock = false;
+    const buffersArr    = [];
+    const tempBuffers   = [];
+    let startIndex      = 0;
+    let seekCloseBlock  = false;
 
     // Read and get MIB header
     const readStream = createReadStream(mibPath, { highWaterMark: 1024 });
     for await (let buf of readStream) {
-        {
+        { // Exclude import definition
             const breakIndex = buf.indexOf(BREAKLINE);
             if (breakIndex !== -1) {
                 buf = buf.slice(breakIndex + 1, buf.length);
             }
         }
 
-        let j = 0;
-
-        let oneMatch = false;
         for (let i = 0; i < buf.length; i++) {
             if (buf[i] === EQUAL_SIGN) {
                 seekCloseBlock = true;
             }
             else if (buf[i] === CLOSE_BRACKET && seekCloseBlock) {
-                const fBuf = tBuffers.length > 0 ? Buffer.concat([...tBuffers, buf]) : buf;
-                const ret = fBuf.slice(startIndex, (fBuf.length - (buf.length - i)) + 1);
-                tBuffers = [];
-                buffersArr.push(ret);
-                console.log(ret.toString());
-                console.log("-----------------\n\n");
-                if (j === 3) {
-                    process.exit(0);
-                }
-                j++;
-
-                startIndex = i+2;
                 seekCloseBlock = false;
-                oneMatch = true;
+
+                if (tempBuffers.length === 0) {
+                    buffersArr.push(buf.slice(startIndex, i+1));
+                }
+                else {
+                    const reconstructedBuf = Buffer.concat([...tempBuffers, buf]);
+                    const tBufLen = (reconstructedBuf.length - buf.length) + i;
+                    buffersArr.push(reconstructedBuf.slice(startIndex, tBufLen + 1));
+                    tempBuffers = [];
+                }
+                startIndex = i+1;
             }
         }
 
-        if (startIndex <= buf.length) {
-            tBuffers.push(oneMatch ? buf.slice(startIndex, buf.length) : buf);
+        // Ont push dans le tableau temporaire s'il reste encore des éléments!
+        if (startIndex < buf.length) {
+            tempBuffers.push(buf.slice(startIndex, buf.length));
+            startIndex = 0;
         }
+
     }
     readStream.close();
+
+    console.log(buffersArr.map(buf => buf.toString()));
 
     // let buffer = Buffer.concat(buffersArr);
     // buffer = buffer.slice(buffer.indexOf(BREAKLINE) + 1, buffer.length);
