@@ -1,6 +1,6 @@
 {
-  "name": "MIBParser",
-  "version": "1.0.0",
+  "name": "@slimio/mib-parser",
+  "version": "0.1.0",
   "description": "JavaScript (Node.JS) MIB Parser",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/SlimIO/MIBParser/issues"
   },

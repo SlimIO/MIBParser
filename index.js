@@ -7,6 +7,7 @@ const BREAKLINE = ";".charCodeAt(0);
 const IMPORT_KEY = "IMPORTS";
 const EQUAL_SIGN = "=".charCodeAt(0);
 const DOUBLE_DOT_SIGN = ":".charCodeAt(0);
+const CLOSE_BRACE = ")".charCodeAt(0);
 const CLOSE_BRACKET = "}".charCodeAt(0);
 const IMPORT_KEY_LENGTH = IMPORT_KEY.length;
 const MIBS_DIR = join(__dirname, "MIBS");
@@ -102,6 +103,7 @@ async function parseASN1(mibPath) {
 
         for (let i = 0; i < buf.length; i++) {
             if (buf[i] === EQUAL_SIGN) {
+                // Handle TEXT Convention here
                 seekCloseBlock = true;
             }
             else if (buf[i] === CLOSE_BRACKET && seekCloseBlock) {
