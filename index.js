@@ -20,21 +20,24 @@ const ReASN1Group = /::=\s+{\s[\w-]+\s[0-9]\s}/gm;
 /**
  * @function cleanUpANS1Comments
  * @desc Delete ASN1 comments
- * @param {!String} str 
+ * @param {!String} str str
+ * @returns {String}
  */
 function cleanUpANS1Comments(str) {
     let comment;
-    while((comment = ReMibComment.exec(str)) !== null) {
-        str = str.replace(comment[0], "");
+    let uStr = str;
+
+    while ((comment = ReMibComment.exec(str)) !== null) {
+        uStr = str.replace(comment[0], "");
     }
-    while((comment = ReMibComment.exec(str)) !== null) {
-        str = str.replace(comment[0], "");
+    while ((comment = ReMibComment.exec(str)) !== null) {
+        uStr = str.replace(comment[0], "");
     }
-    while((comment = ReMibComment.exec(str)) !== null) {
-        str = str.replace(comment[0], "");
+    while ((comment = ReMibComment.exec(str)) !== null) {
+        uStr = str.replace(comment[0], "");
     }
 
-    return str;
+    return uStr;
 }
 
 /**
@@ -42,6 +45,7 @@ function cleanUpANS1Comments(str) {
  * @function MIBDefinitions
  * @desc pStrrieve MIB definition!
  * @param {!String} mibPath path to mib file!
+ * @returns {*}
  */
 async function MIBDefinitions(mibPath) {
     const buffers = [];
@@ -65,12 +69,13 @@ async function MIBDefinitions(mibPath) {
     const mibNameRet = /([a-zA-Z0-9-]+)\s+DEFINITIONS\s+::=\sBEGIN/g.exec(pStr);
     const ret = {
         file: mibPath,
-        name: mibNameRet !== null ? mibNameRet[1] : "unknown",
+        name: mibNameRet === null ? "unknown" : mibNameRet[1],
         dependencies: []
     };
 
-    let from, startIndex = pStr.indexOf(IMPORT_KEY) + IMPORT_KEY_LENGTH;
-    while((from = ReMibFrom.exec(pStr)) !== null) {
+    let from;
+    let startIndex = pStr.indexOf(IMPORT_KEY) + IMPORT_KEY_LENGTH;
+    while ((from = ReMibFrom.exec(pStr)) !== null) {
         const [completeMatch, fromMibName] = from;
         const endIndex = pStr.indexOf(completeMatch) - 1;
 
@@ -86,39 +91,40 @@ async function MIBDefinitions(mibPath) {
 
 async function parseASN1(mibPath) {
     // Declare variables
-    const buffersArr    = [];
-    const tempBuffers   = [];
-    let startIndex      = 0;
-    let seekCloseBlock  = false;
+    const buffersArr = [];
+    let tempBuffers = [];
+    let startIndex = 0;
+    let seekCloseBlock = false;
 
     // Read and get MIB header
     const readStream = createReadStream(mibPath, { highWaterMark: 1024 });
     for await (let buf of readStream) {
-        { // Exclude import definition
+        {
+            // Exclude import definition
             const breakIndex = buf.indexOf(BREAKLINE);
             if (breakIndex !== -1) {
                 buf = buf.slice(breakIndex + 1, buf.length);
             }
         }
 
-        for (let i = 0; i < buf.length; i++) {
-            if (buf[i] === EQUAL_SIGN) {
+        for (let id = 0; id < buf.length; id++) {
+            if (buf[id] === EQUAL_SIGN) {
                 // Handle TEXT Convention here
                 seekCloseBlock = true;
             }
-            else if (buf[i] === CLOSE_BRACKET && seekCloseBlock) {
+            else if (buf[id] === CLOSE_BRACKET && seekCloseBlock) {
                 seekCloseBlock = false;
 
                 if (tempBuffers.length === 0) {
-                    buffersArr.push(buf.slice(startIndex, i+1));
+                    buffersArr.push(buf.slice(startIndex, id + 1));
                 }
                 else {
                     const reconstructedBuf = Buffer.concat([...tempBuffers, buf]);
-                    const tBufLen = (reconstructedBuf.length - buf.length) + i;
+                    const tBufLen = reconstructedBuf.length - buf.length + id;
                     buffersArr.push(reconstructedBuf.slice(startIndex, tBufLen + 1));
                     tempBuffers = [];
                 }
-                startIndex = i+1;
+                startIndex = id + 1;
             }
         }
 
@@ -127,11 +133,10 @@ async function parseASN1(mibPath) {
             tempBuffers.push(buf.slice(startIndex, buf.length));
             startIndex = 0;
         }
-
     }
     readStream.close();
 
-    console.log(buffersArr.map(buf => buf.toString()));
+    console.log(buffersArr.map((buf) => buf.toString()));
 
     // let buffer = Buffer.concat(buffersArr);
     // buffer = buffer.slice(buffer.indexOf(BREAKLINE) + 1, buffer.length);
@@ -189,6 +194,6 @@ async function main() {
     // }
 
     // const retStr = JSON.stringify(importDef, null, 4);
-    // await writeFile("./parsed.json", retStr); 
+    // await writeFile("./parsed.json", retStr);
 }
 main().catch(console.error);
