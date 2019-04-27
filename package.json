@@ -33,7 +33,6 @@
     "@commitlint/config-conventional": "^7.5.0",
     "@escommunity/minami": "^1.0.0",
     "@slimio/eslint-config": "^2.0.4",
-    "@types/node": "^11.13.8",
     "eslint": "^5.16.0",
     "husky": "^2.1.0",
     "jsdoc": "^3.5.5"
