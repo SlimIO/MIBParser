@@ -4,13 +4,14 @@
   "description": "JavaScript (Node.JS) MIB Parser",
   "main": "index.js",
   "scripts": {
+      "prepublishOnly": "pkg-ok",
     "test": "ava --verbose",
     "doc": "jsdoc -c ./jsdoc.json -r -R ./README.md -P ./package.json --verbose",
     "coverage": "nyc npm test",
     "report": "nyc report --reporter=html"
   },
   "engines": {
-      "node": ">=10"
+    "node": ">=10"
   },
   "husky": {
     "hooks": {
@@ -22,9 +23,9 @@
     "url": "git+https://github.com/SlimIO/MIBParser.git"
   },
   "keywords": [
-      "mib",
-      "parser",
-      "asn1"
+    "mib",
+    "parser",
+    "asn1"
   ],
   "author": "SlimIO",
   "license": "MIT",
@@ -42,6 +43,7 @@
     "@slimio/eslint-config": "^2.0.4",
     "eslint": "^5.16.0",
     "husky": "^2.1.0",
-    "jsdoc": "^3.5.5"
+    "jsdoc": "^3.5.5",
+    "pkg-ok": "^2.3.1"
   }
 }
