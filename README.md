@@ -25,5 +25,12 @@ TBC
 ## API
 TBC
 
+## Dependencies
+
+|Name|Refactoring|Security Risk|Usage|
+|---|---|---|---|
+|[asn1](https://github.com/joyent/node-asn1#readme)|⚠️Major|Low|Decoder/Encoder asn1|
+
+
 ## License
 MIT
