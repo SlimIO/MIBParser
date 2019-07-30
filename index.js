@@ -1,3 +1,5 @@
+"use strict";
+
 // Require Node.JS Dependencies
 const { createReadStream, promises: { readdir, writeFile } } = require("fs");
 const { join } = require("path");
@@ -19,9 +21,9 @@ const ReASN1Group = /::=\s+{\s[\w-]+\s[0-9]\s}/gm;
 
 /**
  * @function cleanUpANS1Comments
- * @desc Delete ASN1 comments
- * @param {!String} str str
- * @returns {String}
+ * @description Delete ASN1 comments
+ * @param {!string} str str
+ * @returns {string}
  */
 function cleanUpANS1Comments(str) {
     let comment;
@@ -43,8 +45,8 @@ function cleanUpANS1Comments(str) {
 /**
  * @async
  * @function MIBDefinitions
- * @desc pStrrieve MIB definition!
- * @param {!String} mibPath path to mib file!
+ * @description pStrrieve MIB definition!
+ * @param {!string} mibPath path to mib file!
  * @returns {*}
  */
 async function MIBDefinitions(mibPath) {
@@ -89,6 +91,13 @@ async function MIBDefinitions(mibPath) {
     return ret;
 }
 
+/**
+ * @async
+ * @function parseASN1
+ * @description parse ASN1
+ * @param {!string} mibPath path to mib file!
+ * @returns {Promise<void>}
+ */
 async function parseASN1(mibPath) {
     // Declare variables
     const buffersArr = [];
@@ -165,6 +174,12 @@ async function parseASN1(mibPath) {
     // console.log(JSON.stringify(buffersArr.map((buf) => buf.toString()), null, 4));
 }
 
+/**
+ * @async
+ * @function main
+ * @description import def
+ * @returns {Promise<void>}
+ */
 async function main() {
     let importDef;
 
