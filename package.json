@@ -27,6 +27,9 @@
     "parser",
     "asn1"
   ],
+  "files": [
+    "index.js"
+  ],
   "author": "SlimIO",
   "license": "MIT",
   "bugs": {
