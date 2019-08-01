@@ -46,6 +46,7 @@
     "@slimio/eslint-config": "^3.0.2",
     "eslint": "^6.1.0",
     "husky": "^3.0.2",
+    "japa": "^2.0.10",
     "jsdoc": "^3.5.5",
     "pkg-ok": "^2.3.1"
   }
