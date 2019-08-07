@@ -15,7 +15,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": "cross-env eslint index.js && npm test",
+        "pre-push": "cross-env eslint index.js && npm test",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
@@ -29,8 +29,7 @@
     "asn1"
   ],
   "files": [
-    "index.js",
-    "src"
+    "index.js"
   ],
   "author": "SlimIO",
   "license": "MIT",
