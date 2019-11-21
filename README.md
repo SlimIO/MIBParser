@@ -1,13 +1,14 @@
 # MIBParser
-![version](https://img.shields.io/badge/dynamic/json.svg?url=https://raw.githubusercontent.com/SlimIO/MIBParser/master/package.json&query=$.version&label=Version)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/SlimIO/MIBParser/commit-activity)
+![version](https://img.shields.io/badge/dynamic/json.svg?url=https://raw.githubusercontent.com/SlimIO/Mib-Parser/master/package.json?token=AOgWw3vrgQuu-U4fz1c7yYZyc7XJPNtrks5catjdwA%3D%3D&query=$.version&label=Version)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/SlimIO/Mib-Parser/commit-activity)
 ![MIT](https://img.shields.io/github/license/mashape/apistatus.svg)
-![dep](https://img.shields.io/david/slimio/timemap.svg)
+![size](https://img.shields.io/github/languages/code-size/SlimIO/Mib-Parser)
+[![Known Vulnerabilities](https://snyk.io//test/github/SlimIO/Mib-Parser/badge.svg?targetFile=package.json)](https://snyk.io//test/github/SlimIO/Mib-Parser?targetFile=package.json)
 
 JavaScript (Node.JS) MIB Parser
 
 ## Requirements
-- [Node.js](https://nodejs.org/en/) v10 or higher
+- [Node.js](https://nodejs.org/en/) v12 or higher
 
 ## Getting Started
 
